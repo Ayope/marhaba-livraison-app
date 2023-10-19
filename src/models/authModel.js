@@ -2,9 +2,9 @@ import { userModel } from "./config/models.js";
 
 export default class AuthModel{
 
-    constructor(fullName, photo, email, password, phoneNumber, address, role) {
-        this.fullName = fullName;
-        this.photo = photo;
+    constructor(name, image, email, password, phoneNumber, address, role) {
+        this.name = name;
+        this.image = image;
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
@@ -20,9 +20,15 @@ export default class AuthModel{
             password : this.password,
             phoneNumber : this.phoneNumber,
             address : this.address,
-            role : this.role
+            role : this.role,
+            isVerified : false
         })
 
         return user;    
+    }
+
+    static async getUser(id){
+        const user = await userModel.findOne({ _id: id }).populate('role');
+        return user;
     }
 }

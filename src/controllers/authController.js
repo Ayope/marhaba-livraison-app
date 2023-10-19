@@ -1,6 +1,10 @@
 import AuthModel from "../models/authModel.js";
 import bcryptjs from "bcryptjs";
 import validation from "../requests/authValidation.js"; 
+import RoleModel from "../models/roleModel.js";
+import SendEmail from "../helpers/sendEmails.js";
+import { config } from "dotenv";
+config();
 
 export default class AuthController{
     
@@ -23,24 +27,48 @@ export default class AuthController{
                 throw(errorMessage);
             }
 
-            const { fullName, email, password, phoneNumber, address } = req.body;
+            const { name, email, password, phoneNumber, address, role } = req.body;
             
             const hashedPassword = await bcryptjs.hash(password, 10);
             
-            const photo = req.file ? req.file.filename : null;
+            const image = req.file ? req.file.filename : null;
 
-            const user = new AuthModel(fullName, photo, email, hashedPassword, phoneNumber, address);
+            const roleId = await RoleModel.getRoleId(role);
+
+            const user = new AuthModel(name, image, email, hashedPassword, phoneNumber, address, roleId);
         
-            await user.register();
+            const registeredUser = await user.register();
+
+            SendEmail.sendVerificationEmail(registeredUser);
 
             res.json({
-                "success" : "Registered successfully"
+                "success" : "Registered successfully, Check your inbox for verification email"
             });
 
         }catch(error){
-            console.error(error);
-            res.status(500).send(error);
+            if (error.code === 11000 && error.keyPattern.email) {
+                res.status(500).send("Email address is already in use.");
+            }else{
+                res.status(500).send(error);
+            }
         }
         
+    }
+
+    static async verifyAccount(req, res){
+        const user = req.user;
+
+        if(user.isVerified){
+            return res.status(200).send("User has been already verified. Please Login");
+        }else{
+            user.isVerified = true;
+            
+            if(!await user.save()){
+                return res.status(500).send("Something went wrong on our side, try again later !")
+            }else{
+                return res.status(200).send("Your account has been successfully verified");
+            }
+        }
+
     }
 }
