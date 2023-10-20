@@ -4,6 +4,7 @@ import validation from "../requests/authValidation.js";
 import RoleModel from "../models/roleModel.js";
 import SendEmail from "../helpers/sendEmails.js";
 import { config } from "dotenv";
+import tokenHandler from "../helpers/tokenHandler.js";
 config();
 
 export default class AuthController{
@@ -13,18 +14,7 @@ export default class AuthController{
             const { error } = validation.validateRegister(req, res);
 
             if(error){
-                const validationErrors = error.details.map((detail) => {
-                    return {
-                      field: detail.context.key,
-                      message: detail.message,
-                    };
-                });
-                
-                const errorMessage = `${validationErrors
-                    .map((error) => `${error.message}`)
-                    .join(', \n')}`;
-                    
-                throw(errorMessage);
+                validation.errorHandler(error);
             }
 
             const { name, email, password, phoneNumber, address, role } = req.body;
@@ -41,7 +31,7 @@ export default class AuthController{
 
             SendEmail.sendVerificationEmail(registeredUser);
 
-            res.json({
+            res.status(200).json({
                 "success" : "Registered successfully, Check your inbox for verification email"
             });
 
@@ -71,4 +61,50 @@ export default class AuthController{
         }
 
     }
+
+    static async login(req, res){
+        try{
+            const { error } = validation.validateLogin(req, res);
+            
+            if(error){
+                validation.errorHandler(error);
+            }
+    
+            const {email, password} = req.body;
+            
+            const user = await AuthModel.login(email);
+    
+            if(user){
+                if(bcryptjs.compare(password, user.password)){
+                    if(user.isVerified){
+                        const token = tokenHandler.signToken({ userId: user._id }, process.env.JWT_SECRET_KEY, '7 days')
+                        res.cookie("token", token)
+
+                        res.status(200).json({
+                            "success" : "You logged in successfully, Enjoy!",
+                        });
+                    }else{
+                        SendEmail.sendVerificationEmail(user);
+
+                        res.status(401).json({
+                            "error" : "Verify your account first to use the application !"
+                        });
+                    }
+                }else{
+                    res.status(400).json({
+                        'error': "Incorrect password",
+                    })
+                }
+            }else{
+                res.status(400).json({
+                    'error': "Email not found"
+                })
+            }
+
+        }catch(error){
+            res.status(500).send(error);
+        }
+    }
+
+    static async
 }

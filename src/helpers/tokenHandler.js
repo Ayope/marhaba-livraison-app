@@ -22,7 +22,7 @@ export default class tokenHandler{
         return new Promise((resolve, reject)=>{
             verify(token, secret_key, (err, decoded) => {
                 if (err) {
-                    reject(new Error(`Error while verifying the token: ${err.message}`));
+                    reject(new Error('Invalid or expired token.'));
                 } else {
                     resolve(decoded);
                 }

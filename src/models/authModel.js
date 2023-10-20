@@ -31,4 +31,9 @@ export default class AuthModel{
         const user = await userModel.findOne({ _id: id }).populate('role');
         return user;
     }
+
+    static async login(email){
+        const user = await userModel.findOne({email : email});
+        return user;
+    }
 }
