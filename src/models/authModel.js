@@ -32,7 +32,7 @@ export default class AuthModel{
         return user;
     }
 
-    static async login(email){
+    static async getUserByEmail(email){
         const user = await userModel.findOne({email : email});
         return user;
     }

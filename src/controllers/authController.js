@@ -2,7 +2,7 @@ import AuthModel from "../models/authModel.js";
 import bcryptjs from "bcryptjs";
 import validation from "../requests/authValidation.js"; 
 import RoleModel from "../models/roleModel.js";
-import SendEmail from "../helpers/sendEmails.js";
+import sendEmail from "../helpers/sendEmails.js";
 import { config } from "dotenv";
 import tokenHandler from "../helpers/tokenHandler.js";
 config();
@@ -29,7 +29,7 @@ export default class AuthController{
         
             const registeredUser = await user.register();
 
-            SendEmail.sendVerificationEmail(registeredUser);
+            sendEmail(registeredUser, 'verification');
 
             res.status(200).json({
                 "success" : "Registered successfully, Check your inbox for verification email"
@@ -72,10 +72,10 @@ export default class AuthController{
     
             const {email, password} = req.body;
             
-            const user = await AuthModel.login(email);
+            const user = await AuthModel.getUserByEmail(email);
     
             if(user){
-                if(bcryptjs.compare(password, user.password)){
+                if(await bcryptjs.compare(password, user.password)){
                     if(user.isVerified){
                         const token = tokenHandler.signToken({ userId: user._id }, process.env.JWT_SECRET_KEY, '7 days')
                         res.cookie("token", token)
@@ -84,7 +84,7 @@ export default class AuthController{
                             "success" : "You logged in successfully, Enjoy!",
                         });
                     }else{
-                        SendEmail.sendVerificationEmail(user);
+                        sendEmail(user, 'verification');
 
                         res.status(401).json({
                             "error" : "Verify your account first to use the application !"
@@ -106,5 +106,60 @@ export default class AuthController{
         }
     }
 
-    static async
+    static async forgotPassword(req, res){        
+        try{
+
+            const { error } = validation.validateForgotPassword(req, res);
+                
+            if(error){
+                validation.errorHandler(error);
+            }
+
+            const { email } = req.body;
+            
+            const user = await AuthModel.getUserByEmail(email);
+    
+            if(user){
+                sendEmail(user, 'reset');
+                res.status(200).json({
+                    "success" : "Verify your inbox for Reset Password email",
+                });
+            }else{
+                res.status(400).send("User Not Found");
+            }
+        }catch(error){
+            res.status(500).send(error);
+        }
+    }
+
+    static async resetPassword(req, res){
+        
+        try{
+
+            const { error } = validation.validatePassword(req, res);
+                
+            if(error){
+                validation.errorHandler(error);
+            }
+
+            const user = req.user;
+
+            const { password } = req.body;
+
+            const hashedPassword = await bcryptjs.hash(password, 10);
+                
+            user.password = hashedPassword;
+        
+            if(!await user.save()){
+                return res.status(500).send("Something went wrong on our side, try again later !")
+            }else{
+                return res.status(200).json({
+                    "success" : "Your password changed successfully",
+                });
+            }
+
+        }catch(error){
+            res.status(500).send(error);
+        }
+    }
 }

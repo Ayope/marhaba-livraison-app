@@ -8,10 +8,11 @@ const router = express.Router();
 router.post("/register", upload.single('image'), AuthController.register);
 router.get("/verify",verifyToken, AuthController.verifyAccount);
 router.post("/login", AuthController.login);
-
-router.get('/private', verifyToken, (req, res) => {
-    res.send(req.cookies)
-})
+router.post("/forgot", AuthController.forgotPassword);
+router.post("/reset", verifyToken, AuthController.resetPassword);
+router.get("/reset", verifyToken, (req, res) => {
+    res.send("RESET PASSWORD PAGE");
+});
 
 
 export default router;

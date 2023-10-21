@@ -26,7 +26,44 @@ export default class AuthValidation{
         
         const schema = Joi.object({
             email : Joi.string().email().required(), 
-            password : Joi.string().min(8).regex(/^(?=.*[a-zA-Z])(?=.*\d)/).required(),
+            password : Joi.string().min(8)
+            .regex(/^(?=.*[a-zA-Z])(?=.*\d)/)
+            .message('"password" must contain alphabetic and numerical characters')
+            .required(),
+        }).options({allowUnknown:true})
+
+        return schema.validate(req.body , {abortEarly: false});
+        
+    }
+
+    static validateForgotPassword(req, res){
+        
+        const schema = Joi.object({
+            email : Joi.string().email().required(), 
+        }).options({allowUnknown:true})
+
+        return schema.validate(req.body , {abortEarly: false});
+        
+    }
+
+    static validatePassword(req, res){        
+        const schema = Joi.object({
+            password : Joi.string().min(8)
+            .regex(/^(?=.*[a-zA-Z])(?=.*\d)/)
+            .required()
+            .messages({
+                'string.pattern.base': '"Password" must contain alphabetic and numerical characters',
+            }),
+            
+            confirmedPassword : Joi.string()
+            .valid(Joi.ref('password'))
+            .required()
+            .label('Confirmed Password')
+            .messages({
+                'any.only': '"Confirmed Password" should be the same as the "Password"',
+            }),
+
+            
         }).options({allowUnknown:true})
 
         return schema.validate(req.body , {abortEarly: false});
