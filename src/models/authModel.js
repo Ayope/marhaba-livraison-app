@@ -33,7 +33,7 @@ export default class AuthModel{
     }
 
     static async getUserByEmail(email){
-        const user = await userModel.findOne({email : email});
+        const user = await userModel.findOne({email : email}).populate('role');
         return user;
     }
 }

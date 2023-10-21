@@ -2,13 +2,13 @@ import tokenHandler from "../helpers/tokenHandler.js";
 import AuthModel from "../models/authModel.js";
 
 export default async function verifyToken(req, res, next){    
-    const token = req.query.token || req.cookies.token;
+    const token = req.query.token || req.cookies.token || req.params.token;
 
     try{
         const tokenData = await tokenHandler.verifyToken(token, process.env.JWT_SECRET_KEY);
         
         if(!tokenData){
-            if(req.query.token){
+            if(req.query.token || req.params.token){
                 return res.status(400).send({
                     error : "Your link may have expired!"
                 })

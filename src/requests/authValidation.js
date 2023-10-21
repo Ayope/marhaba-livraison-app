@@ -15,7 +15,7 @@ export default class AuthValidation{
             .required(),
             phoneNumber : Joi.string().regex(/^(06|05|07)\d{8}$/).required(),
             address : Joi.string().required(),
-            role : Joi.string().valid('admin', 'client', 'livreur').required()
+            role : Joi.string().valid('client', 'livreur').required()
         }).options({allowUnknown:true})
 
         return schema.validate(req.body , {abortEarly: false});

@@ -10,37 +10,44 @@ config();
 export default class AuthController{
     
     static async register(req, res) {
-        try {
-            const { error } = validation.validateRegister(req, res);
+        if(!req.cookies.token){
 
-            if(error){
-                validation.errorHandler(error);
-            }
-
-            const { name, email, password, phoneNumber, address, role } = req.body;
+            try {
+                const { error } = validation.validateRegister(req, res);
+    
+                if(error){
+                    validation.errorHandler(error);
+                }
+    
+                const { name, email, password, phoneNumber, address, role } = req.body;
+                
+                const hashedPassword = await bcryptjs.hash(password, 10);
+                
+                const image = req.file ? req.file.filename : null;
+    
+                const roleId = await RoleModel.getRoleId(role);
+    
+                const user = new AuthModel(name, image, email, hashedPassword, phoneNumber, address, roleId);
             
-            const hashedPassword = await bcryptjs.hash(password, 10);
-            
-            const image = req.file ? req.file.filename : null;
-
-            const roleId = await RoleModel.getRoleId(role);
-
-            const user = new AuthModel(name, image, email, hashedPassword, phoneNumber, address, roleId);
-        
-            const registeredUser = await user.register();
-
-            sendEmail(registeredUser, 'verification');
-
-            res.status(200).json({
-                "success" : "Registered successfully, Check your inbox for verification email"
-            });
-
-        }catch(error){
-            if (error.code === 11000 && error.keyPattern.email) {
-                res.status(500).send("Email address is already in use.");
-            }else{
-                res.status(500).send(error);
+                const registeredUser = await user.register();
+    
+                sendEmail(registeredUser, 'verification');
+    
+                res.status(200).json({
+                    "success" : "Registered successfully, Check your inbox for verification email"
+                });
+    
+            }catch(error){
+                if (error.code === 11000 && error.keyPattern.email) {
+                    res.status(500).send("Email address is already in use.");
+                }else{
+                    res.status(500).send(error);
+                }
             }
+        }else{
+            res.json({
+                'error': "You're already logged in, logged out first!"
+            })
         }
         
     }
@@ -63,50 +70,67 @@ export default class AuthController{
     }
 
     static async login(req, res){
-        try{
-            const { error } = validation.validateLogin(req, res);
-            
-            if(error){
-                validation.errorHandler(error);
-            }
+        if(!req.cookies.token){
+            try{
+                const { error } = validation.validateLogin(req, res);
+                
+                if(error){
+                    validation.errorHandler(error);
+                }
+        
+                const {email, password} = req.body;
+                
+                const user = await AuthModel.getUserByEmail(email);
+        
+                if(user){
+                    if(await bcryptjs.compare(password, user.password)){
+                        if(user.isVerified){
+                            const token = tokenHandler.signToken({ userId: user._id }, process.env.JWT_SECRET_KEY, '7 days')
+                            res.cookie("token", token)
+                            
+                            req.user = user;
+                            const role = user.role.title
+                            
+                            if(role === "manager"){
+                                res.redirect('/api/user/manager/me'); 
+                            }else if(role === "client"){
+                                res.redirect('/api/user/client/me');
+                            } else if(role === "livreur"){
+                                res.redirect('/api/user/livreur/me'); 
+                            }
+                            
+                            // res.status(200).json({
+                            //     "success" : "You logged in successfully, Enjoy!",
+                            // });
+                        }else{
+                            sendEmail(user, 'verification');
     
-            const {email, password} = req.body;
-            
-            const user = await AuthModel.getUserByEmail(email);
-    
-            if(user){
-                if(await bcryptjs.compare(password, user.password)){
-                    if(user.isVerified){
-                        const token = tokenHandler.signToken({ userId: user._id }, process.env.JWT_SECRET_KEY, '7 days')
-                        res.cookie("token", token)
-
-                        res.status(200).json({
-                            "success" : "You logged in successfully, Enjoy!",
-                        });
+                            res.status(401).json({
+                                "error" : "Verify your account first to use the application !"
+                            });
+                        }
                     }else{
-                        sendEmail(user, 'verification');
-
-                        res.status(401).json({
-                            "error" : "Verify your account first to use the application !"
-                        });
+                        res.status(400).json({
+                            'error': "Incorrect password",
+                        })
                     }
                 }else{
                     res.status(400).json({
-                        'error': "Incorrect password",
+                        'error': "Email not found"
                     })
                 }
-            }else{
-                res.status(400).json({
-                    'error': "Email not found"
-                })
+    
+            }catch(error){
+                res.status(500).send(error);
             }
-
-        }catch(error){
-            res.status(500).send(error);
+        }else{
+            res.json({
+                'error': "You're already logged in, logged out first!"
+            })
         }
     }
 
-    static async forgotPassword(req, res){        
+    static async forgetPassword(req, res){
         try{
 
             const { error } = validation.validateForgotPassword(req, res);
@@ -161,5 +185,9 @@ export default class AuthController{
         }catch(error){
             res.status(500).send(error);
         }
+    }
+
+    static logout(req, res){
+        res.clearCookie("token").status(200).send("Logged out successfully");
     }
 }
