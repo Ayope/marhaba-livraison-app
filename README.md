@@ -4,16 +4,20 @@
 
 ## Project folder structure   
 
+### ./api dir structure : 
+
 * src/: This is where your application's source code resides.  
 * controllers/: Controllers handle the logic for your routes.  
 * models/: Define your database schema and models.  
-* views/: For rendering views.  
 * routes/: Define your Express.js routes here.  
 * server.js: Start your Express server here.  
-* public/: Public assets like stylesheets, JavaScript files, images, and fonts.  
+* public/: Public assets like stylesheets, JavaScript files, images, and fonts.
+* public/uploads : Images uploaded from the user.
 * node_modules/: Node.js modules installed via npm.  
 * package.json and package-lock.json: Manage your project's dependencies.  
 * .gitignore: Ignore files and directories for version control.  
+
+### ./client dir structure
 
 ## Run program :
 
