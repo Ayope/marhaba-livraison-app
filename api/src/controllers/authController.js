@@ -34,14 +34,18 @@ export default class AuthController{
                 sendEmail(registeredUser, 'verification');
     
                 res.status(200).json({
-                    "success" : "Registered successfully, Check your inbox for verification email"
+                    success : "Registered successfully, Check your inbox for verification email"
                 });
     
             }catch(error){
                 if (error.code === 11000 && error.keyPattern.email) {
-                    res.status(500).send("Email address is already in use.");
+                    res.status(500).json({
+                        error : "Email address is already in use."
+                    });
                 }else{
-                    res.status(500).send(error);
+                    res.status(500).json({
+                        error : error
+                    });
                 }
             }
         }else{
