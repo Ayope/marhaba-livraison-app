@@ -17,7 +17,7 @@ function App() {
   const location = useLocation();
 
   const shouldRenderNavbar = location.pathname == '/home'
-                            || location.pathname == '/'
+                            | location.pathname == '/'
 
 
   return (
