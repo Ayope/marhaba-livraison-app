@@ -3,3 +3,15 @@
 
 ## Project Documentation
 - Go to **`wiki`** tab for complete project documentation.
+
+## Steps to be done when you clone
+
+**- Be sure you're on the "./" directory**
+1. npm install
+2. npm run install-all 
+3. cd api
+4. create .env file
+5. copy .envExample variables to .env
+6. fill .env variables
+7. cd ..
+8. npm run start-all
