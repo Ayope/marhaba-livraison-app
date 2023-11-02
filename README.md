@@ -1,28 +1,5 @@
 ## Project context 
- Une application pour le restaurant "Mar7aba" offrant un service de livraison à domicile. Grâce à cette application, les clients pourront passer leur commande en
- toute simplicité, puis attendre la livraison à domicile.
+- Une application pour la restaurant MARHABA avec un service de livraison à domicile. Les Clients pourront donc passer commande directement depuis l’application et payer avant livraison à domicile. Le travail consiste à réaliser une application de Livraison Marhaba. Cette application sera réalisée en utilisant les SPA (Single Page Application) avec CSR (Client Side Rendering).
 
-## Project folder structure   
-
-### ./api dir structure : 
-
-* src/: This is where your application's source code resides.  
-* controllers/: Controllers handle the logic for your routes.  
-* models/: Define your database schema and models.  
-* routes/: Define your Express.js routes here.  
-* server.js: Start your Express server here.  
-* public/: Public assets like stylesheets, JavaScript files, images, and fonts.
-* public/uploads : Images uploaded from the user.
-* node_modules/: Node.js modules installed via npm.  
-* package.json and package-lock.json: Manage your project's dependencies.  
-* .gitignore: Ignore files and directories for version control.  
-
-### ./client dir structure
-
-## Run program :
-
-* create .env file
-* copy .envExample to .env
-* fill .env variables
-* npm install
-* nodemon ./src/server.js
+## Project Documentation
+- Go to **`wiki`** tab for complete project documentation.
