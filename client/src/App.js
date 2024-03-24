@@ -10,20 +10,22 @@ import ResetPassword from './pages/auth/resetPassword';
 import VerifyAccount from './pages/auth/verifyAccount';
 import IsNotAuth from './guards/IsNotAuth.js';
 import IsAuth from './guards/IsAuth.js';
-import PageNotFound from './pages/pageNotFound'
+import PageNotFound from './pages/pageNotFound';
+import Clients from './pages/Clients.js';
 
 function App() {
 
   const location = useLocation();
 
   const shouldRenderNavbar = location.pathname == '/home'
-                            | location.pathname == '/'
+                            || location.pathname == '/'
 
 
   return (
     <UserContextProvider>
       {shouldRenderNavbar && <Navbar/>}
       <Routes>
+        <Route path="/clients" element={< Clients />}/>
         <Route path="/" element={<IsNotAuth component={Home} />}/>
         <Route path="/home" element={<IsNotAuth component={Home} />}/>
         <Route path='/register' element={<IsAuth component={RegisterPage}/>}></Route>

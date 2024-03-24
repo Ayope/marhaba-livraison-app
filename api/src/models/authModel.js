@@ -36,4 +36,13 @@ export default class AuthModel{
         const user = await userModel.findOne({email : email}).populate('role');
         return user;
     }
+
+    static async getAllClients(){
+        const users = await userModel.find({}).populate({
+            path: 'role',
+            match: { title: 'client' }
+        })
+
+        return users;
+    }
 }
